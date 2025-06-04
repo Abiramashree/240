@@ -1,0 +1,401 @@
+---
+title: "STAT240P Final Project"
+author: "Joshua Gataric"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
+# Read data
+nfl <- read.csv("spreadspoke_scores.csv")
+teams <- read.csv("nfl_teams.csv")
+stadiums <- read.delim("stadiums.txt", header = TRUE, sep = ",")
+
+# Rename columns in teams for home join
+teams_home <- teams %>%
+  rename_with(~ paste0(., "_home"), -team_name)
+
+# Join on team_home
+nfl_home_joined <- nfl %>%
+  left_join(teams_home, by = c("team_home" = "team_name"))
+
+# Rename columns in teams for away join
+teams_away <- teams %>%
+  rename_with(~ paste0(., "_away"), -team_name)
+
+# Join on team_away
+nfl_full_joined <- nfl_home_joined %>%
+  left_join(teams_away, by = c("team_away" = "team_name"))
+
+# List of unique stadiums
+unique_stadiums <- nfl_full_joined %>%
+  distinct(stadium) %>%
+  arrange(stadium)
+
+# Perform the full join and remove with incomplete sports betting metrics 
+nfl_with_stadiums <- nfl_full_joined %>%
+  full_join(stadiums, by = c("stadium" = "Name")) %>%
+  filter(!is.na(spread_favorite), !is.na(over_under_line))
+
+summary(nfl_with_stadiums)
+
+na_counts <- colSums(is.na(nfl_with_stadiums))
+print(na_counts)
+
+nfl_with_stadiums <- nfl_with_stadiums %>%
+  mutate(
+    weather_temperature = if_else(
+      is.na(weather_temperature),
+      median(weather_temperature, na.rm = TRUE),
+      weather_temperature
+    ),
+    weather_wind_mph = if_else(
+      is.na(weather_wind_mph),
+      median(weather_wind_mph, na.rm = TRUE),
+      weather_wind_mph
+    ),
+    weather_humidity = if_else(
+      is.na(weather_humidity),
+      median(weather_humidity, na.rm = TRUE),
+      weather_humidity
+    )
+  )
+
+
+```
+
+```{r}
+# Summary stats for temperature
+summary(nfl_with_stadiums$weather_temperature)
+
+# Temperature vs. spread favorite
+ggplot(nfl_with_stadiums, aes(x=weather_temperature, y=spread_favorite)) +
+  geom_point(alpha=0.3) +
+  geom_smooth(method='lm') +
+  labs(title="Temperature vs. Point Spread", x="Temperature (°F)", y="Spread")
+
+# Temperature vs. over/under line
+ggplot(nfl_with_stadiums, aes(x=weather_temperature, y=over_under_line)) +
+  geom_point(alpha=0.3) +
+  geom_smooth(method='lm') +
+  labs(title="Temperature vs. Over/Under Line", x="Temperature (°F)", y="Over/Under")
+```
+```{r}
+# Wind vs. spread favorite
+ggplot(nfl_with_stadiums, aes(x=weather_wind_mph, y=spread_favorite)) +
+  geom_point(alpha=0.3) +
+  geom_smooth() +
+  labs(title="Wind Speed vs. Point Spread", x="Wind Speed (mph)", y="Spread")
+
+# Create wind categories
+Wind <- nfl_with_stadiums %>% mutate(wind_category = cut(weather_wind_mph, 
+                                       breaks=c(0, 10, 20, 30, Inf),
+                                       labels=c("Calm","Breezy","Windy","Very Windy")))
+
+# Average spread by wind category
+Wind %>% group_by(wind_category) %>%
+  summarise(avg_spread = mean(spread_favorite, na.rm=TRUE),
+            avg_over_under = mean(over_under_line, na.rm=TRUE))
+```
+
+```{r}
+# Humidity vs. scoring metrics
+ggplot(nfl_with_stadiums, aes(x=weather_humidity, y=score_home + score_away)) +
+  geom_point(alpha=0.3) +
+  geom_smooth() +
+  labs(title="Humidity vs. Total Points Scored", x="Humidity (%)", y="Total Points")
+```
+
+```{r}
+# Analyze by weather type
+nfl_with_stadiums %>% group_by(weather_detail) %>%
+  summarise(count = n(),
+            avg_spread = mean(spread_favorite, na.rm=TRUE),
+            avg_over_under = mean(over_under_line, na.rm=TRUE),
+            avg_total_points = mean(score_home + score_away, na.rm=TRUE)) %>%
+  arrange(desc(count))
+```
+
+```{r}
+# Roof type vs. scoring
+nfl_with_stadiums %>% group_by(Roof.type) %>%
+  summarise(games = n(),
+            avg_total_points = mean(score_home + score_away, na.rm=TRUE),
+            avg_spread = mean(spread_favorite, na.rm=TRUE),
+            avg_over_under = mean(over_under_line, na.rm=TRUE)) %>%
+  arrange(desc(games))
+
+# Visualization
+ggplot(nfl_with_stadiums, aes(x=Roof.type, y=score_home + score_away)) +
+  geom_boxplot() +
+  labs(title="Total Points by Roof Type", x="Roof Type", y="Total Points")
+```
+
+```{r}
+# Surface vs. performance metrics
+nfl_with_stadiums %>% group_by(Surface) %>%
+  summarise(games = n(),
+            avg_total_points = mean(score_home + score_away, na.rm=TRUE),
+            avg_spread = mean(spread_favorite, na.rm=TRUE)) %>%
+  arrange(desc(games))
+
+# Surface and roof interaction
+nfl_with_stadiums %>% group_by(Surface, Roof.type) %>%
+  summarise(avg_over_under = mean(over_under_line, na.rm=TRUE)) %>%
+  ggplot(aes(x=Surface, y=Roof.type, fill=avg_over_under)) +
+  geom_tile() +
+  scale_fill_gradient(low="blue", high="red") +
+  labs(title="Average Over/Under by Surface and Roof Type")
+```
+
+```{r}
+# Capacity vs. spread
+ggplot(nfl_with_stadiums, aes(x=Capacity, y=spread_favorite)) +
+  geom_point(alpha=0.3) +
+  geom_smooth() +
+  labs(title="Stadium Capacity vs. Point Spread", x="Capacity", y="Spread")
+
+# Create capacity tiers
+capacity <- nfl_with_stadiums %>% mutate(capacity_tier = ntile(Capacity, 4))
+
+# Analyze by capacity tier
+capacity %>% group_by(capacity_tier) %>%
+  summarise(avg_capacity = mean(Capacity, na.rm=TRUE),
+            avg_spread = mean(spread_favorite, na.rm=TRUE),
+            avg_over_under = mean(over_under_line, na.rm=TRUE))
+```
+
+```{r}
+# Temperature effects by roof type
+ggplot(nfl_with_stadiums, aes(x=weather_temperature, y=score_home + score_away, color=Roof.type)) +
+  geom_point(alpha=0.3) +
+  geom_smooth() +
+  facet_wrap(~Roof.type) +
+  labs(title="Temperature Effects on Scoring by Roof Type")
+
+# Wind effects by surface type
+ggplot(nfl_with_stadiums, aes(x=weather_wind_mph, y=spread_favorite, color=Surface)) +
+  geom_point(alpha=0.3) +
+  geom_smooth() +
+  facet_wrap(~Surface) +
+  labs(title="Wind Effects on Spread by Playing Surface")
+```
+
+```{r}
+# Select numeric columns for correlation
+numeric_cols <- nfl_with_stadiums %>% select(weather_temperature, weather_wind_mph, weather_humidity,
+                             spread_favorite, over_under_line, Capacity,
+                             score_home, score_away)
+
+# Correlation matrix
+cor_matrix <- cor(numeric_cols, use="complete.obs")
+corrplot::corrplot(cor_matrix, method="color", type="upper")
+```
+
+```{r}
+# MANOVA Setup
+
+# Standardize
+nfl_with_stadiums <- nfl_with_stadiums %>%
+  mutate(
+    spread_favorite_scaled = scale(spread_favorite),
+    over_under_line_scaled = scale(over_under_line)
+  )
+
+run_tests <- function(dataLow, dataMed, dataHigh) {
+  Y <- rbind(dataLow, dataMed, dataHigh)
+  group <- factor(rep(c("Low", "Medium", "High"), 
+                      times = c(nrow(dataLow), nrow(dataMed), nrow(dataHigh))))
+  fit <- manova(Y ~ group)
+  c(
+    Wilks = summary(fit, test="Wilks")$stats[1, "Pr(>F)"],
+    Pillai = summary(fit, test="Pillai")$stats[1, "Pr(>F)"],
+    Hotelling = summary(fit, test="Hotelling-Lawley")$stats[1, "Pr(>F)"],
+    Roy = summary(fit, test="Roy")$stats[1, "Pr(>F)"]
+  )
+}
+
+run_manova_general <- function(list_of_matrices, group_labels) {
+  Y <- do.call(rbind, list_of_matrices)
+  group <- factor(rep(group_labels, times = sapply(list_of_matrices, nrow)))
+  fit <- manova(Y ~ group)
+  c(
+    Wilks = summary(fit, test = "Wilks")$stats[1, "Pr(>F)"],
+    Pillai = summary(fit, test = "Pillai")$stats[1, "Pr(>F)"],
+    Hotelling = summary(fit, test = "Hotelling-Lawley")$stats[1, "Pr(>F)"],
+    Roy = summary(fit, test = "Roy")$stats[1, "Pr(>F)"]
+  )
+}
+```
+
+
+
+
+
+```{r}
+nfl_with_stadiums <- nfl_with_stadiums %>%
+  mutate(capacity_group = cut(Capacity, 
+                              breaks = quantile(Capacity, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE), 
+                              labels = c("Low", "Medium", "High"),
+                              include.lowest = TRUE))
+
+low_group <- nfl_with_stadiums %>%
+  filter(capacity_group == "Low") %>%
+  select(spread_favorite_scaled,over_under_line_scaled) %>%
+  drop_na() %>%
+  as.matrix()
+
+med_group <- nfl_with_stadiums %>%
+  filter(capacity_group == "Medium") %>%
+  select(spread_favorite_scaled,over_under_line_scaled) %>%
+  drop_na() %>%
+  as.matrix()
+
+high_group <- nfl_with_stadiums %>%
+  filter(capacity_group == "High") %>%
+  select(spread_favorite_scaled,over_under_line_scaled) %>%
+  drop_na() %>%
+  as.matrix()
+
+capacity_results <- run_tests(low_group, med_group, high_group)
+capacity_results
+```
+
+```{r}
+# Spread Favorite Boxplot
+ggplot(nfl_with_stadiums, aes(x = capacity_group, y = spread_favorite, fill = capacity_group)) +
+  geom_boxplot() +
+  labs(
+    title = "Spread Favorite by Stadium Capacity Group",
+    x = "Capacity Group",
+    y = "Spread Favorite"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal()
+
+# Over/Under Line Boxplot
+ggplot(nfl_with_stadiums, aes(x = capacity_group, y = over_under_line, fill = capacity_group)) +
+  geom_boxplot() +
+  labs(
+    title = "Over/Under Line by Stadium Capacity Group",
+    x = "Capacity Group",
+    y = "Over/Under Line"
+  ) +
+  scale_fill_brewer(palette = "Set3") +
+  theme_minimal()
+```
+
+
+
+```{r}
+# Create humidity groups (Low, Medium, High)
+nfl_with_stadiums <- nfl_with_stadiums %>%
+  mutate(humidity_group = cut(weather_humidity, 
+                              breaks = c(0, 50, 75, 100), 
+                              labels = c("Low", "Medium", "High"),
+                              include.lowest = TRUE))
+
+# Prepare data matrices by humidity group
+humidity_low <- nfl_with_stadiums %>%
+  filter(humidity_group == "Low") %>%
+  select(spread_favorite_scaled, over_under_line_scaled) %>%
+  drop_na() %>%
+  as.matrix()
+
+humidity_med <- nfl_with_stadiums %>%
+  filter(humidity_group == "Medium") %>%
+  select(spread_favorite_scaled, over_under_line_scaled) %>%
+  drop_na() %>%
+  as.matrix()
+
+humidity_high <- nfl_with_stadiums %>%
+  filter(humidity_group == "High") %>%
+  select(spread_favorite_scaled, over_under_line_scaled) %>%
+  drop_na() %>%
+  as.matrix()
+
+# Run MANOVA
+humidity_results <- run_tests(humidity_low, humidity_med, humidity_high)
+humidity_results
+
+
+
+```
+
+
+
+```{r}
+
+# Spread Favorite Boxplot by Humidity
+nfl_with_stadiums %>%
+  ggplot(aes(x = humidity_group, y = spread_favorite, fill = humidity_group)) +
+  geom_boxplot() +
+  labs(
+    title = "Spread Favorite by Humidity Group",
+    x = "Humidity Group",
+    y = "Spread Favorite"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal()
+
+# Over/Under Line Boxplot by Humidity 
+nfl_with_stadiums %>%
+  ggplot(aes(x = humidity_group, y = over_under_line, fill = humidity_group)) +
+  geom_boxplot() +
+  labs(
+    title = "Over/Under Line by Humidity Group",
+    x = "Humidity Group",
+    y = "Over/Under Line"
+  ) +
+  scale_fill_brewer(palette = "Set3") +
+  theme_minimal()
+
+
+```
+```{r}
+# Get unique surface types
+surface_levels <- unique(nfl_with_stadiums$Surface)
+
+# Create list of matrices (one for each surface type)
+surface_matrices <- lapply(surface_levels, function(surf) {
+  nfl_with_stadiums %>%
+    filter(Surface == surf) %>%
+    select(spread_favorite_scaled, over_under_line_scaled) %>%
+    drop_na() %>%
+    as.matrix()
+})
+
+# Run MANOVA using generalized function
+surface_results <- run_manova_general(surface_matrices, surface_levels)
+surface_results
+```
+
+
+```{r}
+# Spread Favorite by Surface
+nfl_with_stadiums %>%
+  ggplot(aes(x = Surface, y = spread_favorite, fill = Surface)) +
+  geom_boxplot() +
+  labs(
+    title = "Spread Favorite by Playing Surface",
+    x = "Surface Type",
+    y = "Spread Favorite"
+  ) +
+  theme_minimal()
+
+# Over/Under Line by Surface
+nfl_with_stadiums %>%
+  ggplot(aes(x = Surface, y = over_under_line, fill = Surface)) +
+  geom_boxplot() +
+  labs(
+    title = "Over/Under Line by Playing Surface",
+    x = "Surface Type",
+    y = "Over/Under Line"
+  ) +
+  theme_minimal()
+```
