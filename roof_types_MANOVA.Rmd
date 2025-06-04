@@ -1,0 +1,36 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+
+# roof types: open, fixed, partial, retractable
+roof_types <- unique(nfl_with_stadiums$Roof.type)
+
+roof_matrices <- lapply(roof_types, function(roof) {
+  nfl_with_stadiums %>%
+    filter(Roof.type == roof) %>%
+    select(spread_favorite_scaled, over_under_line_scaled) %>%
+    drop_na() %>%
+    as.matrix()
+})
+
+
+roof_results <- run_manova_general(roof_matrices, roof_types)
+roof_results
+
+# Spread by Roof Type
+ggplot(nfl_with_stadiums, aes(x = Roof.type, y = spread_favorite, fill = Roof.type)) +
+  geom_boxplot() +
+  labs(title = "Spread Favorite by Roof Type", x = "Roof Type", y = "Spread Favorite") +
+  theme_minimal()
+
+# Over/Under Line by Roof Type
+ggplot(nfl_with_stadiums, aes(x = Roof.type, y = over_under_line, fill = Roof.type)) +
+  geom_boxplot() +
+  labs(title = "Over/Under Line by Roof Type", x = "Roof Type", y = "Over/Under Line") +
+  theme_minimal()
+```
+```
+
