@@ -335,7 +335,19 @@ nfl_with_stadiums %>%
 
 ```
 ```{r}
-# Drop NAs in Surface and create data matrices
+run_manova_general <- function(list_of_matrices, group_labels) {
+  Y <- do.call(rbind, list_of_matrices)
+  group <- factor(rep(group_labels, times = sapply(list_of_matrices, nrow)))
+  fit <- manova(Y ~ group)
+  c(
+    Wilks = summary(fit, test = "Wilks")$stats[1, "Pr(>F)"],
+    Pillai = summary(fit, test = "Pillai")$stats[1, "Pr(>F)"],
+    Hotelling = summary(fit, test = "Hotelling-Lawley")$stats[1, "Pr(>F)"],
+    Roy = summary(fit, test = "Roy")$stats[1, "Pr(>F)"]
+  )
+}
+
+# Prepare surface data and standardize
 surface_data <- nfl_with_stadiums %>%
   filter(!is.na(Surface)) %>%
   mutate(
@@ -343,30 +355,22 @@ surface_data <- nfl_with_stadiums %>%
     over_under_line_scaled = scale(over_under_line)
   )
 
+# Get unique surface types
 surface_levels <- unique(surface_data$Surface)
 
-# Split into matrices per surface type
-surface_matrices <- lapply(surface_levels, function(s) {
+# Create list of matrices (one for each surface type)
+surface_matrices <- lapply(surface_levels, function(surf) {
   surface_data %>%
-    filter(Surface == s) %>%
+    filter(Surface == surf) %>%
     select(spread_favorite_scaled, over_under_line_scaled) %>%
     drop_na() %>%
     as.matrix()
 })
 
-# Run MANOVA for Surface
-Y_surface <- do.call(rbind, surface_matrices)
-group_surface <- factor(rep(surface_levels, times = sapply(surface_matrices, nrow)))
-
-fit_surface <- manova(Y_surface ~ group_surface)
-surface_results <- c(
-  Wilks = summary(fit_surface, test = "Wilks")$stats[1, "Pr(>F)"],
-  Pillai = summary(fit_surface, test = "Pillai")$stats[1, "Pr(>F)"],
-  Hotelling = summary(fit_surface, test = "Hotelling-Lawley")$stats[1, "Pr(>F)"],
-  Roy = summary(fit_surface, test = "Roy")$stats[1, "Pr(>F)"]
-)
-
+# Run MANOVA using generalized function
+surface_results <- run_manova_general(surface_matrices, surface_levels)
 surface_results
+
 
 ```
 
