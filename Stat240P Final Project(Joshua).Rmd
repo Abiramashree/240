@@ -334,4 +334,67 @@ nfl_with_stadiums %>%
 
 
 ```
+```{r}
+# Drop NAs in Surface and create data matrices
+surface_data <- nfl_with_stadiums %>%
+  filter(!is.na(Surface)) %>%
+  mutate(
+    spread_favorite_scaled = scale(spread_favorite),
+    over_under_line_scaled = scale(over_under_line)
+  )
 
+surface_levels <- unique(surface_data$Surface)
+
+# Split into matrices per surface type
+surface_matrices <- lapply(surface_levels, function(s) {
+  surface_data %>%
+    filter(Surface == s) %>%
+    select(spread_favorite_scaled, over_under_line_scaled) %>%
+    drop_na() %>%
+    as.matrix()
+})
+
+# Run MANOVA for Surface
+Y_surface <- do.call(rbind, surface_matrices)
+group_surface <- factor(rep(surface_levels, times = sapply(surface_matrices, nrow)))
+
+fit_surface <- manova(Y_surface ~ group_surface)
+surface_results <- c(
+  Wilks = summary(fit_surface, test = "Wilks")$stats[1, "Pr(>F)"],
+  Pillai = summary(fit_surface, test = "Pillai")$stats[1, "Pr(>F)"],
+  Hotelling = summary(fit_surface, test = "Hotelling-Lawley")$stats[1, "Pr(>F)"],
+  Roy = summary(fit_surface, test = "Roy")$stats[1, "Pr(>F)"]
+)
+
+surface_results
+
+```
+
+
+```{r}
+# Spread Favorite by Surface
+nfl_with_stadiums %>%
+  filter(!is.na(Surface)) %>%
+  ggplot(aes(x = Surface, y = spread_favorite, fill = Surface)) +
+  geom_boxplot() +
+  labs(
+    title = "Spread Favorite by Playing Surface",
+    x = "Surface Type",
+    y = "Spread Favorite"
+  ) +
+  theme_minimal()
+
+# Over/Under Line by Surface
+nfl_with_stadiums %>%
+  filter(!is.na(Surface)) %>%
+  ggplot(aes(x = Surface, y = over_under_line, fill = Surface)) +
+  geom_boxplot() +
+  labs(
+    title = "Over/Under Line by Playing Surface",
+    x = "Surface Type",
+    y = "Over/Under Line"
+  ) +
+  theme_minimal()
+
+
+```
