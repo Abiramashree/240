@@ -306,7 +306,7 @@ humidity_results
 
 ```{r}
 
-# Spread Favorite Boxplot by Humidity (excluding NAs)
+# Spread Favorite Boxplot by Humidity
 nfl_with_stadiums %>%
   filter(!is.na(humidity_group)) %>%
   ggplot(aes(x = humidity_group, y = spread_favorite, fill = humidity_group)) +
@@ -319,7 +319,7 @@ nfl_with_stadiums %>%
   scale_fill_brewer(palette = "Set2") +
   theme_minimal()
 
-# Over/Under Line Boxplot by Humidity (excluding NAs)
+# Over/Under Line Boxplot by Humidity 
 nfl_with_stadiums %>%
   filter(!is.na(humidity_group)) %>%
   ggplot(aes(x = humidity_group, y = over_under_line, fill = humidity_group)) +
