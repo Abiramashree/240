@@ -1,6 +1,6 @@
 ---
 title: "STAT240P Final Project"
-author: "Joshua Gataric"
+author: "NFL Sports Betting Team"
 date: "`r Sys.Date()`"
 output: pdf_document
 ---
