@@ -1,0 +1,121 @@
+Name,City,Location,Capacity,Surface,Roof type,Opened
+AT&T Stadium,Arlington, TX,80000,Artificial turf,Retractable,2009
+Acrisure Stadium,Pittsburgh, PA,68400,Grass,Open,2001
+Alamo Dome,San Antonio, TX,64000,Artificial turf,Fixed,1993
+Allegiant Stadium,Las Vegas, NV,65000,Artificial turf,Fixed,2020
+Allianz Arena,Munich, Germany,75024,Hybrid grass,Retractable,2005
+Alltel Stadium,Jacksonville, FL,67164,Grass,Open,1995
+Alumni Stadium,Chestnut Hill, MA,44500,FieldTurf,Open,1957
+Anaheim Stadium,Anaheim, CA,45050,Grass,Open,1966
+Arrowhead Stadium,Kansas City, MO,76416,Grass,Open,1972
+Atlanta-Fulton County Stadium,Atlanta, GA,60606,AstroTurf,Open,1965
+Balboa Stadium,San Diego, CA,15000,Grass,Open,1914
+Bank of America Stadium,Charlotte, NC,75523,Artificial turf,Open,1996
+Busch Memorial Stadium,St. Louis, MO,50000,AstroTurf,Open,1966
+Caesars Superdome,New Orleans, LA,73208,Artificial turf,Fixed,1975
+Candlestick Park,San Francisco, CA,69732,Grass,Open,1960
+CenturyLink Field,Seattle, WA,68740,Artificial turf,Open,2002
+Cinergy Field,Cincinnati, OH,60389,AstroTurf,Open,1970
+Cleveland Municipal Stadium,Cleveland, OH,78000,Grass,Open,1931
+Corinthians Arena,São Paulo, Brazil,49205,Grass,Retractable,2014
+Cotton Bowl,Dallas, TX,92100,Grass,Open,1930
+Cowboys Stadium,Arlington, TX,80000,Artificial turf,Retractable,2009
+Dignity Health Sports Park,Carson, CA,27000,Grass,Open,2003
+Dolphin Stadium,Miami Gardens, FL,64767,Grass,Open,1987
+Edward Jones Dome,St. Louis, MO,66965,Artificial turf,Fixed,1995
+Empower Field at Mile High,Denver, CO,76125,Grass,Open,2001
+Estadio Azteca,Mexico City, Mexico,87523,Grass,Open,1966
+EverBank Field,Jacksonville, FL,67164,Grass,Open,1995
+FedEx Field,Landover, MD,82000,Grass,Open,1997
+Fenway Park,Boston, MA,37755,Grass,Open,1912
+FirstEnergy Stadium,Cleveland, OH,67895,Grass,Open,1999
+Ford Field,Detroit, MI,65000,Artificial turf,Fixed,2002
+Foxboro Stadium,Foxborough, MA,60292,Grass,Open,1971
+Frankfurt Stadium,Frankfurt, Germany,54697,Grass,Retractable,1925
+Franklin Field,Philadelphia, PA,52593,Grass,Open,1895
+GEHA Field at Arrowhead Stadium,Kansas City, MO,76416,Grass,Open,1972
+Georgia Dome,Atlanta, GA,71228,Artificial turf,Fixed,1992
+Giants Stadium,East Rutherford, NJ,80242,Artificial turf,Open,1976
+Gillette Stadium,Foxborough, MA,65878,Artificial turf,Open,2002
+Hard Rock Stadium,Miami Gardens, FL,65326,Grass,Open,1987
+Harvard Stadium,Boston, MA,30323,FieldTurf,Open,1903
+Heinz Field,Pittsburgh, PA,68400,Grass,Open,2001
+Highmark Stadium,Orchard Park, NY,71608,Artificial turf,Open,1973
+Houlihan's Stadium,Tampa, FL,74301,Grass,Open,1967
+Houston Astrodome,Houston, TX,54816,AstroTurf,Fixed,1965
+Hubert H. Humphrey Metrodome,Minneapolis, MN,64121,Artificial turf,Fixed,1982
+Husky Stadium,Seattle, WA,70083,FieldTurf,Open,1920
+Jack Murphy Stadium,San Diego, CA,70561,Grass,Open,1967
+Joe Robbie Stadium,Miami Gardens, FL,65326,Grass,Open,1987
+Kansas City Municipal Stadium,Kansas City, MO,35561,Grass,Open,1923
+Kezar Stadium,San Francisco, CA,59942,Grass,Open,1925
+LP Stadium,Nashville, TN,69143,Grass,Open,1999
+Lambeau Field,Green Bay, WI,81441,Grass,Open,1957
+Legion Field,Birmingham, AL,71594,Artificial turf,Open,1927
+Levi's Stadium,Santa Clara, CA,68500,Grass,Open,2014
+Liberty Bowl Memorial Stadium,Memphis, TN,58325,Artificial turf,Open,1965
+Lincoln Financial Field,Philadelphia, PA,69796,Grass,Open,2003
+Los Angeles Memorial Coliseum,Los Angeles, CA,77500,Grass,Open,1923
+Louisiana Superdome,New Orleans, LA,73208,Artificial turf,Fixed,1975
+Lucas Oil Stadium,Indianapolis, IN,70000,Artificial turf,Retractable,2008
+Lumen Field,Seattle, WA,68740,Artificial turf,Open,2002
+M&T Bank Stadium,Baltimore, MD,71008,Grass,Open,1998
+Mall of America Field,Minneapolis, MN,64121,Artificial turf,Fixed,1982
+Memorial Stadium (Baltimore),Baltimore, MD,54000,Grass,Open,1950
+Memorial Stadium (Champaign),Champaign, IL,60670,Grass,Open,1923
+Memorial Stadium (Clemson),Clemson, SC,81500,Grass,Open,1942
+Mercedes-Benz Stadium,Atlanta, GA,71000,Artificial turf,Retractable,2017
+Mercedes-Benz Superdome,New Orleans, LA,73208,Artificial turf,Fixed,1975
+MetLife Stadium,East Rutherford, NJ,82500,Artificial turf,Open,2010
+Metropolitan Stadium,Bloomington, MN,48446,Grass,Open,1956
+Mile High Stadium,Denver, CO,76125,Grass,Open,1948
+NRG Stadium,Houston, TX,72220,Artificial turf,Retractable,2002
+New Era Field,Orchard Park, NY,71608,Artificial turf,Open,1973
+Nippert Stadium,Cincinnati, OH,40000,Artificial turf,Open,1915
+Nissan Stadium,Nashville, TN,69143,Grass,Open,1999
+Oakland Coliseum,Oakland, CA,56000,Grass,Open,1966
+Orange Bowl,Miami, FL,74916,Grass,Open,1937
+Paul Brown Stadium,Cincinnati, OH,65515,Artificial turf,Open,2000
+Paycor Stadium,Cincinnati, OH,65515,Artificial turf,Open,2000
+Pitt Stadium,Pittsburgh, PA,56800,Grass,Open,1925
+Pontiac Silverdome,Pontiac, MI,82700,Artificial turf,Fixed,1975
+Pro Player Stadium,Miami Gardens, FL,65326,Grass,Open,1987
+Qualcomm Stadium,San Diego, CA,70561,Grass,Open,1967
+RCA Dome,Indianapolis, IN,57980,Artificial turf,Fixed,1984
+RFK Memorial Stadium,Washington, D.C.,45423,Grass,Open,1961
+Ralph Wilson Stadium,Orchard Park, NY,71608,Artificial turf,Open,1973
+Raymond James Stadium,Tampa, FL,65890,Grass,Open,1998
+Reliant Stadium,Houston, TX,72220,Artificial turf,Retractable,2002
+Rice Stadium,Houston, TX,47000,Grass,Open,1950
+Rogers Centre,Toronto, Canada,53506,Artificial turf,Retractable,1989
+Rose Bowl,Pasadena, CA,92542,Grass,Open,1922
+Seattle Kingdome,Seattle, WA,66000,AstroTurf,Fixed,1976
+Shea Stadium,Queens, NY,57333,Grass,Open,1964
+SoFi Stadium,Inglewood, CA,70240,Artificial turf,Fixed,2020
+Soldier Field,Chicago, IL,61500,Grass,Open,1924
+Sports Authority Field at Mile High,Denver, CO,76125,Grass,Open,2001
+Stanford Stadium,Stanford, CA,50424,Grass,Open,1921
+State Farm Stadium,Glendale, AZ,63400,Artificial turf,Retractable,2006
+StubHub Center,Carson, CA,27000,Grass,Open,2003
+Sun Devil Stadium,Tempe, AZ,53599,Grass,Open,1958
+Sun Life Stadium,Miami Gardens, FL,65326,Grass,Open,1987
+TCF Bank Stadium,Minneapolis, MN,50805,Artificial turf,Open,2009
+TIAA Bank Field,Jacksonville, FL,67164,Grass,Open,1995
+Tampa Stadium,Tampa, FL,74301,Grass,Open,1967
+Texas Stadium,Irving, TX,65675,AstroTurf,Partial,1971
+Three Rivers Stadium,Pittsburgh, PA,59000,AstroTurf,Open,1970
+Tiger Stadium,Baton Rouge, LA,102321,Grass,Open,1924
+Tiger Stadium (LSU),Baton Rouge, LA,102321,Grass,Open,1924
+Tottenham Hotspur Stadium,London, England,62850,Grass,Retractable,2019
+Tottenham Stadium,London, England,62850,Grass,Retractable,2019
+Tulane Stadium,New Orleans, LA,80985,Grass,Open,1926
+Twickenham Stadium,London, England,82000,Grass,Open,1909
+U.S. Bank Stadium,Minneapolis, MN,66655,Artificial turf,Fixed,2016
+University of Phoenix Stadium,Glendale, AZ,63400,Artificial turf,Retractable,2006
+Vanderbilt Stadium,Nashville, TN,40350,Grass,Open,1922
+Veterans Stadium,Philadelphia, PA,65358,AstroTurf,Open,1971
+War Memorial Stadium,Little Rock, AR,54120,Artificial turf,Open,1948
+Wembley Stadium,London, England,90000,Grass,Retractable,2007
+Wrigley Field,Chicago, IL,41649,Grass,Open,1914
+Yale Bowl,New Haven, CT,61446,Grass,Open,1914
+Yankee Stadium,Bronx, NY,47309,Grass,Open,2009
