@@ -399,3 +399,66 @@ nfl_with_stadiums %>%
   ) +
   theme_minimal()
 ```
+
+
+```{r}
+library(MASS)
+#code creating categoricals:
+# Example: Let's assume you already have a dataset called 'weather_data'
+# and it contains a numeric column named 'weather_temperature'.
+
+# Define the temperature categories
+nfl_with_stadiums$temperature_category <- cut(
+  nfl_with_stadiums$weather_temperature,
+  breaks = c(-Inf, 65, 79, Inf),  # thresholds for cold, warm, hot
+  labels = c("cold", "warm", "hot"),
+  right = FALSE
+)
+
+# Define the wind speed categories
+nfl_with_stadiums$wind_category <- cut(
+  nfl_with_stadiums$weather_wind_mph,
+  breaks = c(1, 8, 11),  # thresholds for cold, warm, hot
+  labels = c("slow", "fast"),
+  right = FALSE
+)
+
+
+
+# Check the result
+head(nfl_with_stadiums)
+
+```
+
+```{r}
+#anova and manova
+# Create interaction group
+nfl_with_stadiums$weather_group <- interaction(
+  nfl_with_stadiums$temperature_category,
+  nfl_with_stadiums$wind_category,
+  drop = TRUE
+)
+
+# Group by weather group and split into a list
+weather_split <- nfl_with_stadiums %>%
+  filter(!is.na(weather_group)) %>%
+  group_by(weather_group) %>%
+  group_split()
+
+# Convert each group into a matrix of the 2 response variables
+weather_matrices <- lapply(weather_split, function(df) {
+  df %>%
+    dplyr::select(spread_favorite_scaled, over_under_line_scaled) %>%
+    drop_na() %>%
+    as.matrix()
+})
+
+# Get group labels — should match the order in group_split()
+group_labels <- levels(nfl_with_stadiums$weather_group)
+
+# Run MANOVA using your function
+manova_results_weather <- run_manova_general(weather_matrices, group_labels)
+manova_results_weather
+
+
+```
