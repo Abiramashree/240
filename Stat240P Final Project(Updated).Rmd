@@ -11,6 +11,12 @@ library(tidyr)
 ```
 
 ```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
 # Read data
 nfl <- read.csv("spreadspoke_scores.csv")
 teams <- read.csv("nfl_teams.csv")
@@ -354,8 +360,6 @@ nfl_with_stadiums %>%
   ) +
   scale_fill_brewer(palette = "Set3") +
   theme_minimal()
-
-
 ```
 ```{r}
 # Get unique surface types
@@ -398,4 +402,105 @@ nfl_with_stadiums %>%
     y = "Over/Under Line"
   ) +
   theme_minimal()
+```
+
+```{r}
+# roof types: open, fixed, partial, retractable
+roof_types <- unique(nfl_with_stadiums$Roof.type)
+
+roof_matrices <- lapply(roof_types, function(roof) {
+  nfl_with_stadiums %>%
+    filter(Roof.type == roof) %>%
+    select(spread_favorite_scaled, over_under_line_scaled) %>%
+    drop_na() %>%
+    as.matrix()
+})
+
+
+roof_results <- run_manova_general(roof_matrices, roof_types)
+roof_results
+
+# Spread by Roof Type
+ggplot(nfl_with_stadiums, aes(x = Roof.type, y = spread_favorite, fill = Roof.type)) +
+  geom_boxplot() +
+  labs(title = "Spread Favorite by Roof Type", x = "Roof Type", y = "Spread Favorite") +
+  theme_minimal()
+
+# Over/Under Line by Roof Type
+ggplot(nfl_with_stadiums, aes(x = Roof.type, y = over_under_line, fill = Roof.type)) +
+  geom_boxplot() +
+  labs(title = "Over/Under Line by Roof Type", x = "Roof Type", y = "Over/Under Line") +
+  theme_minimal()
+```
+
+```{r}
+# Define the temperature categories
+nfl_with_stadiums$temperature_category <- cut(
+  nfl_with_stadiums$weather_temperature,
+  breaks = c(-Inf, 65, 79, Inf),  # thresholds for cold, warm, hot
+  labels = c("cold", "warm", "hot"),
+  right = FALSE
+)
+
+# Define the wind speed categories
+nfl_with_stadiums$wind_category <- cut(
+  nfl_with_stadiums$weather_wind_mph,
+  breaks = c(1, 8, 11,Inf),  # thresholds for cold, warm, hot
+  labels = c("slow","medium", "fast"),
+  right = FALSE
+)
+
+# Create interaction group
+nfl_with_stadiums$weather_group <- interaction(
+  nfl_with_stadiums$temperature_category,
+  nfl_with_stadiums$wind_category,
+  drop = TRUE
+)
+
+# Group by weather group and split into a list
+weather_split <- nfl_with_stadiums %>%
+  filter(!is.na(weather_group)) %>%
+  group_by(weather_group) %>%
+  group_split()
+
+# Convert each group into a matrix of the 2 response variables
+weather_matrices <- lapply(weather_split, function(df) {
+  df %>%
+    dplyr::select(spread_favorite_scaled, over_under_line_scaled) %>%
+    drop_na() %>%
+    as.matrix()
+})
+
+# Get group labels — should match the order in group_split()
+group_labels <- levels(nfl_with_stadiums$weather_group)
+
+# Run MANOVA using your function
+manova_results_weather <- run_manova_general(weather_matrices, group_labels)
+manova_results_weather
+
+nfl_with_stadiums %>%
+  filter(!is.na(weather_group)) %>%
+  ggplot(aes(x = weather_group, y = spread_favorite, fill = temperature_category)) +
+  geom_boxplot() +
+  labs(
+    title = "Spread Favorite by Weather Group",
+    x = "Weather Group (Temp x Wind)",
+    y = "Spread Favorite"
+  ) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+nfl_with_stadiums %>%
+  filter(!is.na(weather_group)) %>%
+  ggplot(aes(x = weather_group, y = over_under_line, fill = temperature_category)) +
+  geom_boxplot() +
+  labs(
+    title = "Over/Under Line by Weather Group",
+    x = "Weather Group (Temp x Wind)",
+    y = "Over/Under Line"
+  ) +
+  scale_fill_brewer(palette = "Set3") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
