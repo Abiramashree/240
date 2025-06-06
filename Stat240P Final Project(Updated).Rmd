@@ -11,12 +11,6 @@ library(tidyr)
 ```
 
 ```{r}
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-```
-
-```{r}
 # Read data
 nfl <- read.csv("spreadspoke_scores.csv")
 teams <- read.csv("nfl_teams.csv")
@@ -72,7 +66,7 @@ nfl_with_stadiums <- nfl_with_stadiums %>%
     )
   )
 
-
+nfl_with_stadiums
 ```
 
 ```{r}
@@ -270,6 +264,14 @@ high_group <- nfl_with_stadiums %>%
 
 capacity_results <- run_tests(low_group, med_group, high_group)
 capacity_results
+
+# Univariate ANOVA for spread_favorite_scaled
+anova_spread <- aov(spread_favorite_scaled ~ capacity_group, data = nfl_with_stadiums)
+summary(anova_spread)
+
+# Univariate ANOVA for over_under_line_scaled
+anova_ou <- aov(over_under_line_scaled ~ capacity_group, data = nfl_with_stadiums)
+summary(anova_ou)
 ```
 
 ```{r}
@@ -329,7 +331,13 @@ humidity_high <- nfl_with_stadiums %>%
 humidity_results <- run_tests(humidity_low, humidity_med, humidity_high)
 humidity_results
 
+# Univariate ANOVA for spread_favorite_scaled
+anova_spread <- aov(spread_favorite_scaled ~ humidity_group, data = nfl_with_stadiums)
+summary(anova_spread)
 
+# Univariate ANOVA for over_under_line_scaled
+anova_ou <- aov(over_under_line_scaled ~ humidity_group, data = nfl_with_stadiums)
+summary(anova_ou)
 
 ```
 
@@ -377,6 +385,14 @@ surface_matrices <- lapply(surface_levels, function(surf) {
 # Run MANOVA using generalized function
 surface_results <- run_manova_general(surface_matrices, surface_levels)
 surface_results
+
+# Univariate ANOVA for spread_favorite_scaled
+anova_spread <- aov(spread_favorite_scaled ~ Surface, data = nfl_with_stadiums)
+summary(anova_spread)
+
+# Univariate ANOVA for over_under_line_scaled
+anova_ou <- aov(over_under_line_scaled ~ Surface, data = nfl_with_stadiums)
+summary(anova_ou)
 ```
 
 
@@ -419,6 +435,14 @@ roof_matrices <- lapply(roof_types, function(roof) {
 
 roof_results <- run_manova_general(roof_matrices, roof_types)
 roof_results
+
+# Univariate ANOVA for spread_favorite_scaled
+anova_spread <- aov(spread_favorite_scaled ~ Roof.type, data = nfl_with_stadiums)
+summary(anova_spread)
+
+# Univariate ANOVA for over_under_line_scaled
+anova_ou <- aov(over_under_line_scaled ~ Roof.type, data = nfl_with_stadiums)
+summary(anova_ou)
 
 # Spread by Roof Type
 ggplot(nfl_with_stadiums, aes(x = Roof.type, y = spread_favorite, fill = Roof.type)) +
@@ -477,6 +501,14 @@ group_labels <- levels(nfl_with_stadiums$weather_group)
 # Run MANOVA using your function
 manova_results_weather <- run_manova_general(weather_matrices, group_labels)
 manova_results_weather
+
+# Univariate ANOVA for spread_favorite_scaled
+anova_spread <- aov(spread_favorite_scaled ~ weather_group, data = nfl_with_stadiums)
+summary(anova_spread)
+
+# Univariate ANOVA for over_under_line_scaled
+anova_ou <- aov(over_under_line_scaled ~ weather_group, data = nfl_with_stadiums)
+summary(anova_ou)
 
 nfl_with_stadiums %>%
   filter(!is.na(weather_group)) %>%
