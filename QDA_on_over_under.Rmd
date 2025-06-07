@@ -1,0 +1,32 @@
+---
+title: "QDA on over/under"
+output: html_notebook
+---
+
+
+```{r}
+
+nfl_with_stadiums <- nfl_with_stadiums %>%
+  mutate(spread_category = cut(over_under_line,
+                               breaks = c(37, 42,45, 47, 50, Inf),
+                               labels = c("Large Favorite", "More Likely Favorite", "Moderate Favorite", "Least Favorite", "Even Match"),
+                               right = FALSE))
+
+qda_data <- nfl_with_stadiums %>%
+  dplyr::select(spread_category, weather_temperature, Capacity, weather_wind_mph) %>%
+  drop_na()
+
+qda_data$spread_category <- as.factor(qda_data$spread_category)
+
+library(MASS)
+
+qda_model <- qda(spread_category ~ weather_temperature + Capacity, data = qda_data)
+
+qda_model  # view model summary
+
+qda_pred <- predict(qda_model)
+table(Predicted = qda_pred$class, Actual = qda_data$spread_category)
+
+mean(qda_pred$class == qda_data$spread_category)
+
+```
