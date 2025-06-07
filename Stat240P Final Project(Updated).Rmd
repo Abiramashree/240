@@ -550,14 +550,8 @@ nfl_with_stadiums$weather_category <- factor(
 )
 
 # Fit LDA model using spread features as predictors
-# Create scaled versions of the predictors
-nfl_with_stadiums$spread_favorite_scaled <- scale(nfl_with_stadiums$spread_favorite)
-nfl_with_stadiums$over_under_line_scaled <- scale(nfl_with_stadiums$over_under_line)
-
-
-
 lda_model <- lda(
-  weather_category ~ spread_favorite_scaled + over_under_line_scaled,
+  weather_category ~ spread_favorite + over_under_line,
   data = nfl_with_stadiums
 )
 
@@ -573,8 +567,6 @@ table(Predicted = lda_pred$class, Actual = nfl_with_stadiums$weather_category)
 
 # Add predictions to the dataset
 nfl_with_stadiums$lda_pred <- lda_pred$class
-
-
 ```
 ```{r}
 library(MASS)
@@ -599,6 +591,4 @@ plot(lda_wind)
 
 # Predict classes
 lda_wind_pred <- predict(lda_wind)
-
-
 ```
