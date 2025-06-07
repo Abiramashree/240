@@ -583,7 +583,7 @@ nfl_with_stadiums$wind_category <- cut(
 nfl_with_stadiums$wind_category <- factor(nfl_with_stadiums$wind_category, levels = c("slow", "medium", "fast"))
 
 # Fit LDA model
-lda_wind <- lda(wind_category ~ spread_favorite_scaled + over_under_line_scaled, data = nfl_with_stadiums)
+lda_wind <- lda(wind_category ~ spread_favorite + over_under_line, data = nfl_with_stadiums)
 
 # View the LDA model results
 print(lda_wind)
@@ -591,4 +591,103 @@ plot(lda_wind)
 
 # Predict classes
 lda_wind_pred <- predict(lda_wind)
+```
+
+```{r}
+
+nfl_with_stadiums <- nfl_with_stadiums %>%
+  mutate(spread_category = cut(over_under_line,
+                               breaks = c(37, 42,45, 47, 50, Inf),
+                               labels = c("Large Favorite", "More Likely Favorite", "Moderate Favorite", "Least Favorite", "Even Match"),
+                               right = FALSE))
+
+qda_data <- nfl_with_stadiums %>%
+  dplyr::select(spread_category, weather_temperature, Capacity, weather_wind_mph) %>%
+  drop_na()
+
+qda_data$spread_category <- as.factor(qda_data$spread_category)
+
+qda_model <- qda(spread_category ~ weather_temperature + Capacity, data = qda_data)
+
+qda_model  # view model summary
+
+qda_pred <- predict(qda_model)
+table(Predicted = qda_pred$class, Actual = qda_data$spread_category)
+
+mean(qda_pred$class == qda_data$spread_category)
+
+```
+
+```{r}
+#mean vectors  
+
+means_roof_types <- nfl_with_stadiums %>%
+  group_by(Roof.type) %>%
+  summarise(
+    spread = mean(spread_favorite, na.rm = TRUE),
+    ou = mean(over_under_line, na.rm = TRUE)
+  )
+
+means_capacity_groups <- nfl_with_stadiums %>%
+  group_by(capacity_group) %>%
+  summarise(
+    spread = mean(spread_favorite, na.rm = TRUE),
+    ou = mean(over_under_line, na.rm = TRUE)
+  )
+
+means_humidity_groups <- nfl_with_stadiums %>%
+  group_by(humidity_group) %>%
+  summarise(
+    spread = mean(spread_favorite, na.rm = TRUE),
+    ou = mean(over_under_line, na.rm = TRUE)
+  )
+
+means_Surface_groups <- nfl_with_stadiums %>%
+  group_by(Surface) %>%
+  summarise(
+    spread = mean(spread_favorite, na.rm = TRUE),
+    ou = mean(over_under_line, na.rm = TRUE)
+  )
+
+means_weather_groups <- nfl_with_stadiums %>%
+  group_by(weather_group) %>%
+  summarise(
+    spread = mean(spread_favorite, na.rm = TRUE),
+    ou = mean(over_under_line, na.rm = TRUE)
+  )
+
+ggplot(means_roof_types, aes(x = spread, y = ou, label = Roof.type, color = Roof.type)) +
+  geom_point(size = 3) +
+  geom_segment(aes(x = 0, y = 0, xend = spread, yend = ou), arrow = arrow(length = unit(0.2, "cm"))) +
+  geom_text(nudge_y = 0.1) +
+  labs(title = "Displacement of Roof Type Group Means from Grand Mean", x = "Spread Favorite", y = "Over/Under") +
+  theme_minimal()
+
+ggplot(means_capacity_groups, aes(x = spread, y = ou, label = capacity_group, color = capacity_group)) +
+  geom_point(size = 3) +
+  geom_segment(aes(x = 0, y = 0, xend = spread, yend = ou), arrow = arrow(length = unit(0.2, "cm"))) +
+  geom_text(nudge_y = 0.1) +
+  labs(title = "Displacement of Stadium Capacity Group Means from Grand Mean", x = "Spread Favorite", y = "Over/Under") +
+  theme_minimal()
+
+ggplot(means_humidity_groups, aes(x = spread, y = ou, label = humidity_group, color = humidity_group)) +
+  geom_point(size = 3) +
+  geom_segment(aes(x = 0, y = 0, xend = spread, yend = ou), arrow = arrow(length = unit(0.2, "cm"))) +
+  geom_text(nudge_y = 0.1) +
+  labs(title = "Displacement of Humidity Group Means from Grand Mean", x = "Spread Favorite", y = "Over/Under") +
+  theme_minimal()
+
+ggplot(means_Surface_groups, aes(x = spread, y = ou, label = Surface, color = Surface)) +
+  geom_point(size = 3) +
+  geom_segment(aes(x = 0, y = 0, xend = spread, yend = ou), arrow = arrow(length = unit(0.2, "cm"))) +
+  geom_text(nudge_y = 0.1) +
+  labs(title = "Displacement of Surface Group Means from Grand Mean", x = "Spread Favorite", y = "Over/Under") +
+  theme_minimal()
+
+ggplot(means_weather_groups, aes(x = spread, y = ou, label = weather_group, color = weather_group)) +
+  geom_point(size = 3) +
+  geom_segment(aes(x = 0, y = 0, xend = spread, yend = ou), arrow = arrow(length = unit(0.2, "cm"))) +
+  geom_text(nudge_y = 0.1) +
+  labs(title = "Displacement of Weather Interaction Group Means from Grand Mean", x = "Spread Favorite", y = "Over/Under") +
+  theme_minimal()
 ```
