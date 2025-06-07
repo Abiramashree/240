@@ -528,3 +528,77 @@ nfl_with_stadiums %>%
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+## LDA
+```{r}
+# Load necessary library
+library(MASS)
+
+# Categorize weather_temperature into cool, warm, hot
+nfl_with_stadiums$weather_category <- cut(
+  nfl_with_stadiums$weather_temperature,
+  breaks = quantile(nfl_with_stadiums$weather_temperature, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
+  labels = c("cool", "warm", "hot"),
+  include.lowest = TRUE
+)
+
+
+# Ensure weather category is a factor with desired levels
+nfl_with_stadiums$weather_category <- factor(
+  nfl_with_stadiums$weather_category,
+  levels = c("cool", "warm", "hot")
+)
+
+# Fit LDA model using spread features as predictors
+# Create scaled versions of the predictors
+nfl_with_stadiums$spread_favorite_scaled <- scale(nfl_with_stadiums$spread_favorite)
+nfl_with_stadiums$over_under_line_scaled <- scale(nfl_with_stadiums$over_under_line)
+
+
+
+lda_model <- lda(
+  weather_category ~ spread_favorite_scaled + over_under_line_scaled,
+  data = nfl_with_stadiums
+)
+
+# View model details
+print(lda_model)
+plot(lda_model)
+
+# Predict using the model
+lda_pred <- predict(lda_model)
+
+# Confusion matrix to compare predicted vs actual
+table(Predicted = lda_pred$class, Actual = nfl_with_stadiums$weather_category)
+
+# Add predictions to the dataset
+nfl_with_stadiums$lda_pred <- lda_pred$class
+
+
+```
+```{r}
+library(MASS)
+
+# Create wind category based on wind speed (already done by you)
+nfl_with_stadiums$wind_category <- cut(
+  nfl_with_stadiums$weather_wind_mph,
+  breaks = c(1, 8, 11, Inf),
+  labels = c("slow", "medium", "fast"),
+  right = FALSE
+)
+
+# Ensure it's a factor (this should already be the case, but just to be safe)
+nfl_with_stadiums$wind_category <- factor(nfl_with_stadiums$wind_category, levels = c("slow", "medium", "fast"))
+
+# Fit LDA model
+lda_wind <- lda(wind_category ~ spread_favorite_scaled + over_under_line_scaled, data = nfl_with_stadiums)
+
+# View the LDA model results
+print(lda_wind)
+plot(lda_wind)
+
+# Predict classes
+lda_wind_pred <- predict(lda_wind)
+
+
+```
