@@ -5,6 +5,25 @@ output: html_notebook
 
 
 ```{r}
+#mean vectors for roof.type 
+
+means <- nfl_with_stadiums %>%
+  group_by(Roof.type) %>%
+  summarise(
+    spread = mean(spread_favorite_scaled, na.rm = TRUE),
+    ou = mean(over_under_line_scaled, na.rm = TRUE)
+  )
+
+ggplot(means, aes(x = spread, y = ou, label = Roof.type, color = Roof.type)) +
+  geom_point(size = 3) +
+  geom_segment(aes(x = 0, y = 0, xend = spread, yend = ou), arrow = arrow(length = unit(0.2, "cm"))) +
+  geom_text(nudge_y = 0.1) +
+  labs(title = "Displacement of Roof Type Group Means from Grand Mean", x = "Spread (Scaled)", y = "Over/Under (Scaled)") +
+  theme_minimal()
+
+```
+
+```{r}
 
 nfl_with_stadiums <- nfl_with_stadiums %>%
   mutate(spread_category = cut(over_under_line,
