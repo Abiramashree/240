@@ -187,14 +187,22 @@ ggplot(nfl_with_stadiums, aes(x=weather_wind_mph, y=spread_favorite, color=Surfa
 ```
 
 ```{r}
+library(dplyr)
+library(corrplot)
+
 # Select numeric columns for correlation
-numeric_cols <- nfl_with_stadiums %>% select(weather_temperature, weather_wind_mph, weather_humidity,
-                             spread_favorite, over_under_line, Capacity,
-                             score_home, score_away)
+numeric_cols <- nfl_with_stadiums %>% dplyr::select(
+  weather_temperature, weather_wind_mph, weather_humidity,
+  spread_favorite, over_under_line, Capacity,
+  score_home, score_away
+)
 
 # Correlation matrix
-cor_matrix <- cor(numeric_cols, use="complete.obs")
-corrplot::corrplot(cor_matrix, method="color", type="upper")
+cor_matrix <- cor(numeric_cols, use = "complete.obs")
+
+# Plot correlation
+corrplot::corrplot(cor_matrix, method = "color", type = "upper")
+
 ```
 
 ```{r}
@@ -450,7 +458,6 @@ ggplot(nfl_with_stadiums, aes(x = Roof.type, y = over_under_line, fill = Roof.ty
 ```
 
 ```{r}
-# Define the temperature categories
 nfl_with_stadiums$temperature_category <- cut(
   nfl_with_stadiums$weather_temperature,
   breaks = c(-Inf, 65, 79, Inf),  # thresholds for cold, warm, hot
@@ -458,7 +465,6 @@ nfl_with_stadiums$temperature_category <- cut(
   right = FALSE
 )
 
-# Define the wind speed categories
 nfl_with_stadiums$wind_category <- cut(
   nfl_with_stadiums$weather_wind_mph,
   breaks = c(1, 8, 11,Inf),  # thresholds for cold, warm, hot
@@ -490,7 +496,7 @@ weather_matrices <- lapply(weather_split, function(df) {
 # Get group labels — should match the order in group_split()
 group_labels <- levels(nfl_with_stadiums$weather_group)
 
-# Run MANOVA using your function
+# Run MANOVA
 manova_results_weather <- run_manova_general(weather_matrices, group_labels)
 manova_results_weather
 
@@ -531,47 +537,60 @@ nfl_with_stadiums %>%
 
 ## LDA
 ```{r}
-# Load necessary library
 library(MASS)
+library(dplyr)
+library(ggplot2)
 
-# Categorize weather_temperature into cool, warm, hot
-nfl_with_stadiums$weather_category <- cut(
-  nfl_with_stadiums$weather_temperature,
-  breaks = quantile(nfl_with_stadiums$weather_temperature, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
-  labels = c("cool", "warm", "hot"),
-  include.lowest = TRUE
-)
+nfl_with_stadiums <- nfl_with_stadiums %>%
+  mutate(weather_category = cut(weather_temperature,
+                                breaks = quantile(weather_temperature, probs = c(0, 1/3, 2/3, 1), na.rm = TRUE),
+                                labels = c("cool", "warm", "hot"),
+                                include.lowest = TRUE),
+         weather_category = factor(weather_category, levels = c("cool", "warm", "hot")))
 
+lda_model <- lda(weather_category ~ spread_favorite + over_under_line, data = nfl_with_stadiums)
 
-# Ensure weather category is a factor with desired levels
-nfl_with_stadiums$weather_category <- factor(
-  nfl_with_stadiums$weather_category,
-  levels = c("cool", "warm", "hot")
-)
-
-# Fit LDA model using spread features as predictors
-lda_model <- lda(
-  weather_category ~ spread_favorite + over_under_line,
-  data = nfl_with_stadiums
-)
-
-# View model details
 print(lda_model)
 plot(lda_model)
 
-# Predict using the model
 lda_pred <- predict(lda_model)
 
-# Confusion matrix to compare predicted vs actual
-table(Predicted = lda_pred$class, Actual = nfl_with_stadiums$weather_category)
+cm <- table(Predicted = lda_pred$class, Actual = nfl_with_stadiums$weather_category)
+print(cm)
 
-# Add predictions to the dataset
 nfl_with_stadiums$lda_pred <- lda_pred$class
+
+accuracy <- mean(nfl_with_stadiums$lda_pred == nfl_with_stadiums$weather_category)
+print(paste("Model Accuracy:", round(accuracy, 3)))
+
+lda_df <- data.frame(LD1 = lda_pred$x[,1],
+                     weather_category = nfl_with_stadiums$weather_category,
+                     lda_pred = lda_pred$class)
+
+ggplot(lda_df, aes(x = LD1, fill = weather_category)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "LDA Projection by Weather Category",
+       x = "Linear Discriminant 1", y = "Density") +
+  theme_minimal()
+
+cm_df <- as.data.frame(as.table(cm))
+
+ggplot(cm_df, aes(x = Actual, y = Predicted, fill = Freq)) +
+  geom_tile() +
+  geom_text(aes(label = Freq), color = "white", size = 5) +
+  scale_fill_gradient(low = "gray", high = "steelblue") +
+  labs(title = "Confusion Matrix Heatmap") +
+  theme_minimal()
+
+ggplot(nfl_with_stadiums, aes(x = spread_favorite, y = over_under_line, color = weather_category)) +
+  geom_point(alpha = 0.6) +
+  labs(title = "Spread vs. Over/Under by Weather Category") +
+  theme_minimal()
+
 ```
 ```{r}
 library(MASS)
 
-# Create wind category based on wind speed (already done by you)
 nfl_with_stadiums$wind_category <- cut(
   nfl_with_stadiums$weather_wind_mph,
   breaks = c(1, 8, 11, Inf),
@@ -579,17 +598,13 @@ nfl_with_stadiums$wind_category <- cut(
   right = FALSE
 )
 
-# Ensure it's a factor (this should already be the case, but just to be safe)
 nfl_with_stadiums$wind_category <- factor(nfl_with_stadiums$wind_category, levels = c("slow", "medium", "fast"))
 
-# Fit LDA model
 lda_wind <- lda(wind_category ~ spread_favorite + over_under_line, data = nfl_with_stadiums)
 
-# View the LDA model results
 print(lda_wind)
 plot(lda_wind)
 
-# Predict classes
 lda_wind_pred <- predict(lda_wind)
 ```
 
