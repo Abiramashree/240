@@ -1,0 +1,170 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+
+means <- nfl_with_stadiums %>%
+  group_by(Roof.type) %>%
+  summarise(
+    spread = mean(spread_favorite_scaled, na.rm = TRUE),
+    ou = mean(over_under_line_scaled, na.rm = TRUE)
+  )
+
+ggplot(means, aes(x = spread, y = ou, label = Roof.type, color = Roof.type)) +
+  geom_point(size = 3) +
+  geom_segment(aes(x = 0, y = 0, xend = spread, yend = ou), arrow = arrow(length = unit(0.2, "cm"))) +
+  geom_text(nudge_y = 0.1) +
+  labs(title = "Displacement of Roof Type Group Means from Grand Mean", x = "Spread (Scaled)", y = "Over/Under (Scaled)") +
+  theme_minimal()
+ 
+```
+
+```{r}
+# visualizing range of Spread 
+
+# Range
+range(nfl_with_stadiums$spread_favorite, na.rm = TRUE)
+
+# Summary statistics
+summary(nfl_with_stadiums$spread_favorite)
+
+# Histogram
+ggplot(nfl_with_stadiums, aes(x = spread_favorite)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "black") +
+  labs(title = "Distribution of Spread Favorite", x = "Spread", y = "Count") +
+  theme_minimal()
+
+```
+
+```{r}
+# Add predictions to qda_data: temp and capacity 
+qda_pred <- predict(qda_model)
+qda_data$Predicted <- qda_pred$class
+
+# Scatter plot: Actual categories
+ggplot(qda_data, aes(x = weather_temperature, y = Capacity, color = spread_category)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "Actual Spread Category", x = "Temperature (F)", y = "Stadium Capacity") +
+  theme_minimal()
+
+# Scatter plot: Predicted categories
+ggplot(qda_data, aes(x = weather_temperature, y = Capacity, color = Predicted)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "QDA Predicted Spread Category", x = "Temperature (F)", y = "Stadium Capacity") +
+  theme_minimal()
+
+```
+
+```{r}
+#adding wind to predictors
+nfl_with_stadiums <- nfl_with_stadiums %>%
+  mutate(spread_category = cut(spread_favorite,
+                               breaks = c(-Inf, -5.75, 0),
+                               labels = c("Favorable Match", "Even Match")))
+
+qda_data1 <- nfl_with_stadiums %>%
+  dplyr::select(spread_category, weather_temperature, Capacity, weather_wind_mph) %>%
+  drop_na()
+
+qda_data1$spread_category <- as.factor(qda_data1$spread_category)
+
+library(MASS)
+
+qda_model1 <- qda(spread_category ~ weather_temperature + Capacity + weather_wind_mph, data = qda_data1)
+
+qda_model1  # view model summary
+
+qda_pred1 <- predict(qda_model1)
+table(Predicted = qda_pred1$class, Actual = qda_data1$spread_category)
+
+mean(qda_pred1$class == qda_data1$spread_category)
+
+ggplot(qda_data1, aes(x = weather_temperature, y = Capacity, color = spread_category)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~ cut(weather_wind_mph, breaks = c(-Inf, 5, 10, 20, Inf), labels = c("Low", "Medium", "High", "Very High"))) +
+  labs(title = "Temperature vs Capacity by Wind Category") +
+  theme_minimal()
+
+```
+
+```{r}
+#trying to visualize decision regions while adding wind to qda 
+# Create grid of temperature and capacity values
+temp_range <- seq(min(qda_data1$weather_temperature), max(qda_data1$weather_temperature), length.out = 100)
+capacity_range <- seq(min(qda_data1$Capacity), max(qda_data1$Capacity), length.out = 100)
+wind_fixed_value <- median(qda_data1$weather_wind_mph, na.rm = TRUE)  # Fix wind at median value for this plot
+
+grid <- expand.grid(
+  weather_temperature = temp_range,
+  Capacity = capacity_range,
+  weather_wind_mph = wind_fixed_value
+)
+
+# Predict class for each grid point
+grid$predicted_class <- predict(qda_model, newdata = grid)$class
+
+library(ggplot2)
+
+# Plot the decision regions
+ggplot() +
+  geom_tile(data = grid, aes(x = weather_temperature, y = Capacity, fill = predicted_class), alpha = 0.4) +
+  geom_point(data = qda_data1, aes(x = weather_temperature, y = Capacity, color = spread_category), size = 1.5, alpha = 0.6) +
+  labs(title = "QDA Decision Regions (Wind fixed at median value)",
+       x = "Weather Temperature (°F)",
+       y = "Stadium Capacity",
+       fill = "Predicted Class",
+       color = "Actual Class") +
+  theme_minimal()
+
+```
+
+```{r}
+# adding more predictors to qda
+nfl_with_stadiums <- nfl_with_stadiums %>%
+  mutate(spread_category = cut(spread_favorite,
+                               breaks = c(-Inf, -5.75, 0),
+                               labels = c("Favorable Match", "Even Match")))
+
+qda_data2 <- nfl_with_stadiums %>%
+  dplyr::select(spread_category, weather_temperature, Capacity, Roof.type, weather_wind_mph, Surface)  %>%
+  drop_na()
+
+qda_data2$spread_category <- as.factor(qda_data2$spread_category)
+
+library(MASS)
+
+qda_model2 <- qda(spread_category ~ weather_temperature + Capacity + weather_wind_mph + Roof.type + Surface, data = qda_data2)
+
+qda_model2  # view model summary
+
+qda_pred2 <- predict(qda_model2)
+table(Predicted = qda_pred2$class, Actual = qda_data2$spread_category)
+
+mean(qda_pred2$class == qda_data2$spread_category)
+
+```
+
+```{r}
+#performed pca to visualize all predictors, also checked to see how good they are at being predictors
+# Select numeric variables first
+pca_data <- qda_data2 %>%
+  dplyr::select(weather_temperature, Capacity, weather_wind_mph) %>%
+  scale()  # Standardize first!
+
+# Run PCA
+pca_model <- prcomp(pca_data)
+
+# Plot PC1 vs PC2, color by spread_category
+pca_scores <- as.data.frame(pca_model$x)
+pca_scores$spread_category <- qda_data2$spread_category
+
+ggplot(pca_scores, aes(x = PC1, y = PC2, color = spread_category)) +
+  geom_point(alpha = 0.5) +
+  labs(title = "PCA of Predictors: Spread Category Separation",
+       x = "PC1", y = "PC2") +
+  theme_minimal()
+
+``` 
